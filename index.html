@@ -3,39 +3,85 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Bilancia Crescio</title>
+  <title>Bilancia Crescio – Debug</title>
   <style>
-    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    body { font-family: Arial; text-align: center; margin-top: 30px; }
     #touchZone {
       width: 300px;
       height: 300px;
       margin: auto;
-      border: 2px dashed #555;
-      line-height: 300px;
-      background-color: #f4f4f4;
+      border: 4px solid #000;
+      background-color: #b5f5ff;
+      position: relative;
     }
+    #touchZone::before, #touchZone::after{
+      content:'';
+      position:absolute;
+      background:#000;
+    }
+    #touchZone::before{
+      width:2px;height:100%;left:50%;top:0;
+    }
+    #touchZone::after{
+      height:2px;width:100%;top:50%;left:0;
+    }
+    #centerCircle{
+      position:absolute;
+      width:160px;height:160px;
+      border-radius:50%;background:#8fb3ff55;
+      top:50%;left:50%;transform:translate(-50%,-50%);
+      border:1px dashed #6d6d6d;
+    }
+    #taraBtn{
+      margin-top:30px;padding:12px 50px;font-size:20px;
+      background:#ffb700;border:none;border-radius:40px;
+      cursor:pointer;box-shadow:inset -4px -4px 0 #ff9500;
+    }
+    #readout{
+      display:inline-block;margin-left:30px;
+      font-size:22px;padding:10px 40px;border:2px solid #000;
+      border-radius:40px;min-width:140px;
+    }
+    #rawout{font-size:14px;color:#555;margin-top:8px;}
   </style>
 </head>
 <body>
-  <h1>Bilancia Virtuale Crescio</h1>
-  <div id="touchZone">Tocca e premi qui</div>
-  <p id="output">Peso stimato: 0 g</p>
+  <h2>Bilancia Crescio – Modalità Calibrazione</h2>
+
+  <div id="touchZone">
+    <div id="centerCircle"></div>
+  </div>
+
+  <div>
+    <button id="taraBtn">TARA</button>
+    <span id="readout">0.0 g</span>
+  </div>
+  <div id="rawout">raw: 0</div>
 
   <script>
-    const coefficienteSchermo = 0.0025;
-    const output = document.getElementById("output");
-    const zone = document.getElementById("touchZone");
+    let k = 0.0025;            // coefficiente provvisorio
+    let tara = 0;
 
-    zone.addEventListener("touchstart", handleTouch);
-    zone.addEventListener("touchmove", handleTouch);
+    const zone = document.getElementById('touchZone');
+    const readout = document.getElementById('readout');
+    const rawout = document.getElementById('rawout');
+    const taraBtn = document.getElementById('taraBtn');
 
-    function handleTouch(event) {
-      event.preventDefault();
-      let touch = event.touches[0];
-      let pressure = touch.force || 0.5;
-      let area = (touch.radiusX * touch.radiusY * Math.PI) || 100;
-      let peso = pressure * area * coefficienteSchermo;
-      output.textContent = `Peso stimato: ${peso.toFixed(1)} g`;
+    zone.addEventListener('touchstart',handle);
+    zone.addEventListener('touchmove',handle);
+
+    taraBtn.onclick = ()=>{tara = 0; readout.textContent='0.0 g'; rawout.textContent='raw: 0';}
+
+    function handle(ev){
+      ev.preventDefault();
+      const t = ev.touches[0];
+      const p = t.force || 0.5;
+      const area = (t.radiusX * t.radiusY * Math.PI) || 100;
+      const raw = p * area;
+      rawout.textContent = 'raw: '+raw.toFixed(2);
+      const peso = Math.max(0,(raw - tara))*k;
+      readout.textContent = peso.toFixed(1)+' g';
+      // se tara ancora non impostata, premi TARA con uno zero per calibrare
     }
   </script>
 </body>
