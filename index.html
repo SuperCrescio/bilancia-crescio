@@ -1,122 +1,248 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Bilancia Crescio – v3 (≤100 g)</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;align-items:center;height:100vh;background:#fff;overflow:hidden}
-h2{margin:2vh 0;font-size:4.5vw;text-align:center}
-#touchZone{width:min(90vw,80vh);height:min(90vw,80vh);background:#b5f5ff;border:4px solid #000;position:relative;touch-action:none}
-#touchZone::before,#touchZone::after{content:'';position:absolute;background:#000}
-#touchZone::before{width:2px;height:100%;left:50%;top:0}
-#touchZone::after{height:2px;width:100%;top:50%;left:0}
-#centerCircle{position:absolute;width:45%;height:45%;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:#8fb3ff55;border:1px dashed #6d6d6d}
-#controls{margin-top:3vh;display:flex;gap:4vw;flex-wrap:wrap;justify-content:center;align-items:center}
-.btn{font-size:4.5vw;padding:1.5vh 6vw;border:none;border-radius:2rem;cursor:pointer}
-#taraBtn{background:#ffb700;box-shadow:inset -4px -4px 0 #ff9500}
-#calBtn{background:#4caf50;color:#fff}
-#readout{font-size:5.2vw;padding:1.8vh 8vw;border:3px solid #000;border-radius:2rem;min-width:28vw;text-align:center;margin-top:2vh}
-#calBlock{margin-top:2vh;display:flex;gap:2vw;align-items:center;flex-wrap:wrap;justify-content:center}
-#calInput{font-size:4.5vw;width:18vw;padding:1vh 1vw;text-align:center;border:2px solid #000;border-radius:1rem}
-#hint,#info{font-size:3.5vw;margin-top:1vh;text-align:center;color:#555}
-#info{color:#d00}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Bilancia Crescio – v3 (≤100 g)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      background: #fff;
+      overflow: hidden;
+    }
+    h2 {
+      margin: 2vh 0;
+      font-size: 4.5vw;
+      text-align: center;
+    }
+    #touchZone {
+      width: min(90vw, 80vh);
+      height: min(90vw, 80vh);
+      background: #b5f5ff;
+      border: 4px solid #000;
+      position: relative;
+      touch-action: none;
+    }
+    #touchZone::before,
+    #touchZone::after {
+      content: "";
+      position: absolute;
+      background: #000;
+    }
+    #touchZone::before {
+      width: 2px;
+      height: 100%;
+      left: 50%;
+      top: 0;
+    }
+    #touchZone::after {
+      height: 2px;
+      width: 100%;
+      top: 50%;
+      left: 0;
+    }
+    #centerCircle {
+      position: absolute;
+      width: 45%;
+      height: 45%;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: #8fb3ff55;
+      border: 1px dashed #6d6d6d;
+    }
+    #controls {
+      margin-top: 3vh;
+      display: flex;
+      gap: 4vw;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    .btn {
+      font-size: 4.5vw;
+      padding: 1.5vh 6vw;
+      border: none;
+      border-radius: 2rem;
+      cursor: pointer;
+    }
+    #taraBtn {
+      background: #ffb700;
+      box-shadow: inset -4px -4px 0 #ff9500;
+    }
+    #calBtn {
+      background: #4caf50;
+      color: #fff;
+    }
+    #readout {
+      font-size: 5.2vw;
+      padding: 1.8vh 8vw;
+      border: 3px solid #000;
+      border-radius: 2rem;
+      min-width: 28vw;
+      text-align: center;
+      margin-top: 2vh;
+    }
+    #calBlock {
+      margin-top: 2vh;
+      display: flex;
+      gap: 2vw;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #calInput {
+      font-size: 4.5vw;
+      width: 18vw;
+      padding: 1vh 1vw;
+      text-align: center;
+      border: 2px solid #000;
+      border-radius: 1rem;
+    }
+    #hint,
+    #info {
+      font-size: 3.5vw;
+      margin-top: 1vh;
+      text-align: center;
+      color: #555;
+    }
+    #info {
+      color: #d00;
+    }
+  </style>
 </head>
 <body>
-<h2>Bilancia Crescio&nbsp;– <span style="font-size:4vw">calibrazione singolo‑punto</span></h2>
+  <h2>Bilancia Crescio&nbsp;– <span style="font-size:4vw">calibrazione singolo‑punto</span></h2>
 
-<div id="touchZone">
-  <div id="centerCircle"></div>
-</div>
+  <div id="touchZone">
+    <div id="centerCircle"></div>
+  </div>
 
-<div id="controls">
-  <button id="taraBtn" class="btn">TARA</button>
-  <span id="readout">0.0 g</span>
-</div>
+  <div id="controls">
+    <button id="taraBtn" class="btn">TARA</button>
+    <span id="readout">0.0 g</span>
+  </div>
 
-<div id="calBlock">
-  <input id="calInput" type="number" placeholder="100" /> g
-  <button id="calBtn" class="btn">Calibra</button>
-</div>
+  <div id="calBlock">
+    <input id="calInput" type="number" placeholder="100" /> g
+    <button id="calBtn" class="btn">Calibra</button>
+  </div>
 
-<div id="hint">1. Posiziona un piccolo puck al centro.<br>2. Inserisci il suo peso noto e premi Calibra.<br>3. Pesa oggetti ≤ 100 g appoggiandoli sul puck.</div>
-<div id="info"></div>
+  <div id="hint">
+    1. Posiziona un piccolo puck al centro.<br />
+    2. Inserisci il suo peso noto e premi Calibra.<br />
+    3. Pesa oggetti ≤ 100 g appoggiandoli sul puck.
+  </div>
+  <div id="info"></div>
 
-<script>
-let k = 0.0025;     // sarà ricalcolato
-const savedK = parseFloat(localStorage.getItem('scaleK'));
-if(!isNaN(savedK)) k = savedK;
-let tara = 0;
-let lastRaw = 0;
-let smooth = 0;
-let calibMode = false;
-const zone = document.getElementById('touchZone');
-const circle = document.getElementById('centerCircle');
-const readout = document.getElementById('readout');
-const info = document.getElementById('info');
-const taraBtn = document.getElementById('taraBtn');
-const calBtn = document.getElementById('calBtn');
-const calInput = document.getElementById('calInput');
+  <script>
+    let k = 0.0025; // sarà ricalcolato
+    const savedK = parseFloat(localStorage.getItem("scaleK"));
+    if (!isNaN(savedK)) k = savedK;
 
-function insideCircle(x,y){
-  const r = circle.getBoundingClientRect();
-  const cx = r.left + r.width/2, cy = r.top + r.height/2, rad = r.width/2;
-  const dx = x-cx, dy = y-cy;
-  return dx*dx+dy*dy<=rad*rad;
-}
+    let tara = 0;
+    let lastRaw = 0;
+    let smooth = 0;
+    let calibMode = false;
 
-taraBtn.onclick = ()=>{tara=lastRaw; readout.textContent='0.0 g'; info.textContent='TARA eseguita'; setTimeout(()=>info.textContent='',1500)};
+    const zone = document.getElementById("touchZone");
+    const circle = document.getElementById("centerCircle");
+    const readout = document.getElementById("readout");
+    const info = document.getElementById("info");
+    const taraBtn = document.getElementById("taraBtn");
+    const calBtn = document.getElementById("calBtn");
+    const calInput = document.getElementById("calInput");
 
-calBtn.onclick = ()=>{
-  calibMode = true;
-  info.textContent='Tocca e tieni premuto il puck di calibrazione';
-  setTimeout(()=>info.textContent='',3000);
-};
+    function insideCircle(x, y) {
+      const r = circle.getBoundingClientRect();
+      const cx = r.left + r.width / 2,
+        cy = r.top + r.height / 2,
+        rad = r.width / 2;
+      const dx = x - cx,
+        dy = y - cy;
+      return dx * dx + dy * dy <= rad * rad;
+    }
 
-zone.addEventListener('touchstart',handle,{passive:false});
-zone.addEventListener('touchmove',handle,{passive:false});
+    taraBtn.onclick = () => {
+      tara = lastRaw;
+      readout.textContent = "0.0 g";
+      info.textContent = "TARA eseguita";
+      setTimeout(() => (info.textContent = ""), 1500);
+    };
 
-function handle(e){
-  e.preventDefault();
-  if(e.touches.length!==1){info.textContent='Un solo punto di contatto';return;}
-  const t = e.touches[0];
-  if(!insideCircle(t.clientX,t.clientY)){info.textContent='Centra nel cerchio';return;}
-  const p = (typeof t.force==='number') ? t.force : 0.5;
-  const rx = t.radiusX || t.webkitRadiusX || 10;
-  const ry = t.radiusY || t.webkitRadiusY || 10;
-  const area = rx*ry*Math.PI;
-  const raw = p*area;
-  if(!isFinite(raw)) return;
-  lastRaw = raw;
+    calBtn.onclick = () => {
+      calibMode = true;
+      info.textContent = "Tocca e tieni premuto il puck di calibrazione";
+      setTimeout(() => (info.textContent = ""), 3000);
+    };
 
+    zone.addEventListener("touchstart", handle, { passive: false });
+    zone.addEventListener("touchmove", handle, { passive: false });
 
-  if(calibMode){
-    const target = parseFloat(calInput.value);
-    if(isNaN(target)||target<=0){info.textContent='Inserisci peso calibrazione (g)';return;}
-    if(raw<=0){info.textContent='Premi con forza durante calibrazione';return;}
-    tara = 0;    // si calibra da zero
-    k = target/raw;
-    if(!isFinite(k) || k<=0){info.textContent='Calibrazione non valida';return;}
-    localStorage.setItem('scaleK', k);
-    calibMode=false;
-    info.textContent='Calibrazione ok (k='+k.toExponential(2)+')';
-    setTimeout(()=>info.textContent='',2500);
-    return;
-  }
+    function handle(e) {
+      e.preventDefault();
+      if (e.touches.length !== 1) {
+        info.textContent = "Un solo punto di contatto";
+        return;
+      }
+      const t = e.touches[0];
+      if (!insideCircle(t.clientX, t.clientY)) {
+        info.textContent = "Centra nel cerchio";
+        return;
+      }
 
-  const weight = Math.max(0,(raw - tara))*k;
-  if(!isFinite(weight)){
-    readout.textContent='0.0 g';
-    info.textContent='Ripeti calibrazione';
-    return;
-  }
-  smooth = smooth*0.7 + weight*0.3;
-  const limited = Math.min(100, smooth);
-  readout.textContent = limited.toFixed(1)+' g';
-}
-</script>
+      const p = typeof t.force === "number" ? t.force : 0.5;
+      const rx = t.radiusX || t.webkitRadiusX || 10;
+      const ry = t.radiusY || t.webkitRadiusY || 10;
+      const area = rx * ry * Math.PI;
+      const raw = p * area;
+
+      if (!isFinite(raw)) return;
+      lastRaw = raw;
+
+      if (calibMode) {
+        const target = parseFloat(calInput.value);
+        if (isNaN(target) || target <= 0) {
+          info.textContent = "Inserisci peso calibrazione (g)";
+          return;
+        }
+        if (raw <= 0) {
+          info.textContent = "Premi con forza durante calibrazione";
+          return;
+        }
+        tara = 0; // si calibra da zero
+        k = target / raw;
+        if (!isFinite(k) || k <= 0) {
+          info.textContent = "Calibrazione non valida";
+          return;
+        }
+        localStorage.setItem("scaleK", k);
+        calibMode = false;
+        info.textContent = "Calibrazione ok (k=" + k.toExponential(2) + ")";
+        setTimeout(() => (info.textContent = ""), 2500);
+        return;
+      }
+
+      const weight = Math.max(0, raw - tara) * k;
+      if (!isFinite(weight)) {
+        readout.textContent = "0.0 g";
+        info.textContent = "Ripeti calibrazione";
+        return;
+      }
+      smooth = smooth * 0.7 + weight * 0.3;
+      const limited = Math.min(100, smooth);
+      readout.textContent = limited.toFixed(1) + " g";
+    }
+  </script>
 </body>
 </html>
