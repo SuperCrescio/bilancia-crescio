@@ -1,0 +1,8 @@
+{
+  "name": "bilancia-crescio",
+  "version": "1.0.0",
+  "description": "Simple multi-touch scale with optional AI calibration",
+  "scripts": {
+    "test": "echo \"No tests configured\""
+  }
+}
