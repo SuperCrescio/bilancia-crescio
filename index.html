@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Bilancia Crescio – v3 (≤200 g)</title>
+<title>Bilancia Crescio – v3 (≤100 g)</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,Helvetica,sans-serif;display:flex;flex-direction:column;align-items:center;height:100vh;background:#fff;overflow:hidden}
@@ -42,12 +42,16 @@ h2{margin:2vh 0;font-size:4.5vw;text-align:center}
   <button id="calBtn" class="btn">Calibra</button>
 </div>
 
-<div id="hint">1. Posiziona un puck piccolo al centro.<br>2. Inserisci il suo peso noto e premi Calibra.<br>3. Pesa oggetti ≤ 200 g appoggiandoli sul puck.</div>
+<div id="hint">1. Posiziona un piccolo puck al centro.<br>2. Inserisci il suo peso noto e premi Calibra.<br>3. Pesa oggetti ≤ 100 g appoggiandoli sul puck.</div>
 <div id="info"></div>
 
 <script>
 let k = 0.0025;     // sarà ricalcolato
+const savedK = parseFloat(localStorage.getItem('scaleK'));
+if(!isNaN(savedK)) k = savedK;
 let tara = 0;
+let lastRaw = 0;
+let smooth = 0;
 let calibMode = false;
 const zone = document.getElementById('touchZone');
 const circle = document.getElementById('centerCircle');
@@ -64,7 +68,7 @@ function insideCircle(x,y){
   return dx*dx+dy*dy<=rad*rad;
 }
 
-taraBtn.onclick = ()=>{tara=0; readout.textContent='0.0 g'; info.textContent='TARA eseguita'; setTimeout(()=>info.textContent='',1500)};
+taraBtn.onclick = ()=>{tara=lastRaw; readout.textContent='0.0 g'; info.textContent='TARA eseguita'; setTimeout(()=>info.textContent='',1500)};
 
 calBtn.onclick = ()=>{
   calibMode = true;
@@ -80,15 +84,20 @@ function handle(e){
   if(e.touches.length!==1){info.textContent='Un solo punto di contatto';return;}
   const t = e.touches[0];
   if(!insideCircle(t.clientX,t.clientY)){info.textContent='Centra nel cerchio';return;}
-  const p = t.force||0.5;
-  const area = (t.radiusX*t.radiusY*Math.PI)||100;
+  const p = (typeof t.force==='number') ? t.force : 0.5;
+  const rx = t.radiusX || t.webkitRadiusX || 10;
+  const ry = t.radiusY || t.webkitRadiusY || 10;
+  const area = rx*ry*Math.PI;
   const raw = p*area;
+  lastRaw = raw;
+
 
   if(calibMode){
     const target = parseFloat(calInput.value);
     if(isNaN(target)||target<=0){info.textContent='Inserisci peso calibrazione (g)';return;}
     tara = 0;    // si calibra da zero
     k = target/raw;
+    localStorage.setItem('scaleK', k);
     calibMode=false;
     info.textContent='Calibrazione ok (k='+k.toExponential(2)+')';
     setTimeout(()=>info.textContent='',2500);
@@ -96,7 +105,9 @@ function handle(e){
   }
 
   const weight = Math.max(0,(raw - tara))*k;
-  readout.textContent = weight.toFixed(1)+' g';
+  smooth = smooth*0.7 + weight*0.3;
+  const limited = Math.min(100, smooth);
+  readout.textContent = limited.toFixed(1)+' g';
 }
 </script>
 </body>
