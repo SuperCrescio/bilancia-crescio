@@ -122,7 +122,7 @@
   </style>
 </head>
 <body>
-  <h2>Bilancia Crescio&nbsp;– <span style="font-size:4vw">calibrazione singolo‑punto</span></h2>
+  <h2>Bilancia Crescio&nbsp;– <span style="font-size:4vw">AI multi‑touch</span></h2>
 
   <div id="touchZone">
     <div id="centerCircle"></div>
@@ -139,18 +139,29 @@
   </div>
 
   <div id="hint">
-    1. Posiziona un piccolo puck al centro.<br />
+    1. Posiziona un piccolo puck al centro e tocca con più dita.<br />
     2. Inserisci il suo peso noto e premi Calibra.<br />
-    3. Pesa oggetti ≤ 100 g appoggiandoli sul puck.
+    3. Pesa oggetti ≤ 100 g appoggiandoli sul puck e distribuisci la pressione.
   </div>
   <div id="info"></div>
 
   <script>
-    let k = 0.0025; // sarà ricalcolato
-    const savedK = parseFloat(localStorage.getItem("scaleK"));
-    if (!isNaN(savedK)) k = savedK;
+    let modelK = 0.0025;
+    let modelB = 0;
+    let calData = [];
+    try {
+      calData = JSON.parse(localStorage.getItem("scaleAI")) || [];
+    } catch (e) {}
+    if (calData.length) {
+      const m = computeModel(calData);
+      modelK = m.k;
+      modelB = m.b;
+    } else {
+      const savedK = parseFloat(localStorage.getItem("scaleK"));
+      if (!isNaN(savedK)) modelK = savedK;
+    }
 
-    let tara = 0;
+    let taraWeight = 0;
     let lastRaw = 0;
     let smooth = 0;
     let calibMode = false;
@@ -173,8 +184,31 @@
       return dx * dx + dy * dy <= rad * rad;
     }
 
+    function computeModel(data) {
+      if (!data.length) return { k: modelK, b: modelB };
+      if (data.length === 1) {
+        const p = data[0];
+        return { k: p.weight / p.raw, b: 0 };
+      }
+      let sumX = 0,
+        sumY = 0,
+        sumXY = 0,
+        sumXX = 0;
+      const n = data.length;
+      for (const p of data) {
+        sumX += p.raw;
+        sumY += p.weight;
+        sumXY += p.raw * p.weight;
+        sumXX += p.raw * p.raw;
+      }
+      const denom = n * sumXX - sumX * sumX;
+      const k = denom ? (n * sumXY - sumX * sumY) / denom : 0;
+      const b = n ? (sumY - k * sumX) / n : 0;
+      return { k, b };
+    }
+
     taraBtn.onclick = () => {
-      tara = lastRaw;
+      taraWeight = modelK * lastRaw + modelB;
       readout.textContent = "0.0 g";
       info.textContent = "TARA eseguita";
       setTimeout(() => (info.textContent = ""), 1500);
@@ -191,21 +225,17 @@
 
     function handle(e) {
       e.preventDefault();
-      if (e.touches.length !== 1) {
-        info.textContent = "Un solo punto di contatto";
-        return;
+      let raw = 0;
+      for (const t of e.touches) {
+        if (!insideCircle(t.clientX, t.clientY)) {
+          info.textContent = "Centra nel cerchio";
+          return;
+        }
+        const p = typeof t.force === "number" ? t.force : 0.5;
+        const rx = t.radiusX || t.webkitRadiusX || 10;
+        const ry = t.radiusY || t.webkitRadiusY || 10;
+        raw += p * rx * ry * Math.PI;
       }
-      const t = e.touches[0];
-      if (!insideCircle(t.clientX, t.clientY)) {
-        info.textContent = "Centra nel cerchio";
-        return;
-      }
-
-      const p = typeof t.force === "number" ? t.force : 0.5;
-      const rx = t.radiusX || t.webkitRadiusX || 10;
-      const ry = t.radiusY || t.webkitRadiusY || 10;
-      const area = rx * ry * Math.PI;
-      const raw = p * area;
 
       if (!isFinite(raw)) return;
       lastRaw = raw;
@@ -220,20 +250,19 @@
           info.textContent = "Premi con forza durante calibrazione";
           return;
         }
-        tara = 0; // si calibra da zero
-        k = target / raw;
-        if (!isFinite(k) || k <= 0) {
-          info.textContent = "Calibrazione non valida";
-          return;
-        }
-        localStorage.setItem("scaleK", k);
+        calData.push({ raw, weight: target });
+        const m = computeModel(calData);
+        modelK = m.k;
+        modelB = m.b;
+        localStorage.setItem("scaleAI", JSON.stringify(calData));
         calibMode = false;
-        info.textContent = "Calibrazione ok (k=" + k.toExponential(2) + ")";
+        taraWeight = 0;
+        info.textContent = "Calibrazione ok (" + calData.length + " misurazioni)";
         setTimeout(() => (info.textContent = ""), 2500);
         return;
       }
 
-      const weight = Math.max(0, raw - tara) * k;
+      const weight = Math.max(0, modelK * raw + modelB - taraWeight);
       if (!isFinite(weight)) {
         readout.textContent = "0.0 g";
         info.textContent = "Ripeti calibrazione";
