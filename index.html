@@ -220,17 +220,21 @@
       setTimeout(() => (info.textContent = ""), 3000);
     };
 
-    zone.addEventListener("touchstart", handle, { passive: false });
-    zone.addEventListener("touchmove", handle, { passive: false });
+     zone.addEventListener("touchstart", handle, { passive: false });
+     zone.addEventListener("touchmove", handle, { passive: false });
 
-    function handle(e) {
-      e.preventDefault();
-      let raw = 0;
-      for (const t of e.touches) {
-        if (!insideCircle(t.clientX, t.clientY)) {
-          info.textContent = "Centra nel cerchio";
-          return;
-        }
+     function handle(e) {
+       e.preventDefault();
+       if (e.touches.length !== 1) { ... }
+       const t = e.touches[0];
+      if (!insideCircle(t.clientX, t.clientY)) { ... }
+
+       const p = typeof t.force === "number" ? t.force : 0.5;
+       const rx = t.radiusX || t.webkitRadiusX || 10;
+       const ry = t.radiusY || t.webkitRadiusY || 10;
+       const area = rx * ry * Math.PI;
+       const raw = p * area;
+
         const p = typeof t.force === "number" ? t.force : 0.5;
         const rx = t.radiusX || t.webkitRadiusX || 10;
         const ry = t.radiusY || t.webkitRadiusY || 10;
